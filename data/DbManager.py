@@ -100,6 +100,20 @@ class DbManager:
                 
         return name
     
+    def get_total_binaries(self):
+        
+        total = 0
+        query = "SELECT count(md5) FROM file_info"
+        
+        try:
+            self.cursor.execute(query)
+            total = self.cursor.fetchone()
+        except sqlite3.Error as e:
+            print("Failed to get total binaries")
+
+        return total
+            
+    
     def _run_table_sql(self):
         
         with open("sql//file_info.sql", "r") as fp:

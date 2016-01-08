@@ -1,4 +1,5 @@
 import os.path
+import json
 
 from flask import Flask
 from flask.helpers import send_file
@@ -40,6 +41,21 @@ def download_sample(hash):
     else:
         return "",404
 
+@server.route("/management/stats")
+def get_total():
+    
+    stats = {}
+    
+    dbm = DbManager()
+    dbm.open_connection()
+    
+    stats["total_binaries"] = dbm.get_total_binaries()[0]
+
+    dbm.close_connection()
+    
+    return json.dumps(stats)
+    
+
 def start_server():
 
-    server.run(Config.listen_ip, Config.listen_port)
+    server.run(Config.listen_ip, Config.listen_port, debug=True)
