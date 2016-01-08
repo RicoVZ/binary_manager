@@ -44,6 +44,94 @@ class DbManager:
         
         return success
     
+    def store_api_key(self, api_key):
+        
+        success = False
+        query = "INSERT INTO api_key VALUES(?,?,?)"
+        
+        try:
+            self.cursor.execute(query,(api_key.get_api_key(),
+                                       api_key.get_owner(),
+                                       api_key.get_permission()
+                                       ))
+            self.conn.commit()
+            success = True
+        except sqlite3.Error as e:
+            print("Failed to store api key " + e.message)
+            
+        return success
+    
+    def get_all_api_keys(self):
+        
+        query = "SELECT api_key, owner FROM api_key"
+        keys  = []
+        
+        try:
+            self.cursor.execute(query)
+            keys = self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print("Failed to get all api keys " + e.message)
+        
+        return keys
+    
+    def delete_api_key(self, key):
+        
+        success = False
+        query  = "DELETE FROM api_key WHERE api_key = ?"
+        
+        try:
+            self.cursor.execute(query, (key,))
+            self.conn.commit()
+            success = True
+        except sqlite3.Error as e:
+            print("Failed to delete api key: " + e.message)
+        
+        return success
+    
+    def delete_api_key_owner(self, owner):
+        
+        success = False
+        query   = "DELETE FROM api_key WHERE owner = ?"
+        
+        try:
+            self.cursor.execute(query, (owner,))
+            self.conn.commit()
+            success = True
+        except sqlite3.Error as e:
+            print("Failed to delete api key: " + e.message)
+            
+        return success
+    
+    def delete_all_api_keys(self):
+        
+        success = False
+        query   = "DELETE FROM api_key"
+        
+        try:
+            self.cursor.execute(query)
+            self.conn.commit()
+            success = True
+        except sqlite3.Error as e:
+            print("Failed to delete all api keys: " + e.message)
+        
+        return success
+    
+    def api_key_exists(self, key):
+        
+        found = False
+        query = "SELECT api_key FROM api_key WHERE api_key = ?"
+        
+        try:
+            self.cursor.execute(query, (key,))
+            
+            if self.cursor.fetchone() is not None:
+                found = True
+        
+        except sqlite3.Error as e:
+            print("Failed to select on api key " + e.message)
+        
+        return found
+    
     def binary_info_exists(self, b_info):
         
         found = False
@@ -117,6 +205,10 @@ class DbManager:
     def _run_table_sql(self):
         
         with open("sql//file_info.sql", "r") as fp:
+            self.cursor.execute(fp.read())
+            self.conn.commit()
+
+        with open("sql//api_key.sql", "r") as fp:
             self.cursor.execute(fp.read())
             self.conn.commit()
         

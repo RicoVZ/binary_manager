@@ -3,11 +3,13 @@
 import os
 import argparse
 
+import api.ApiServer
 from building.BinaryInfo import BinaryInfo
 from building.BuildRepository import BuildRepository
 from data.DbManager import DbManager
 from config.Config import Config
-import api.ApiServer
+from api.ApiKey import ApiKey
+
 
 if __name__ == "__main__":
 
