@@ -1,48 +1,38 @@
 #!/usr/bin/env python
 
-import os.path
+import os
+import argparse
 
-from flask import Flask
-from flask.helpers import send_file
-
-from BinaryInfo import BinaryInfo
-from DbManager import DbManager
-from BuildRepository import BuildRepository
-
-
-server = Flask(__name__)
-
-@server.route("/download/binary/<hash>")
-def download_sample(hash):
-    
-    if BinaryInfo.is_possible_hash(hash):
-        
-        hashtype = BinaryInfo.get_propable_hash_type(hash)
-
-        dbm = DbManager()
-        
-        dbm.open_connection()
-        name = dbm.search_file_name_for(hashtype, hash)
-        dbm.close_connection()
-        
-        if name is None:
-            return "", 404
-            
-        if not BinaryInfo.is_hexdigest(name[0]):
-            print("Error! File name is not hash. Filename: " + str(name[0]))
-            return "", 404
-            
-        binary = "binaries//" + name[0]
-        if os.path.isfile(binary):
-            return send_file(binary)
-        
-    else:
-        return "",404
+from building.BinaryInfo import BinaryInfo
+from building.BuildRepository import BuildRepository
+from data.DbManager import DbManager
+from config.Config import Config
+import api.ApiServer
 
 if __name__ == "__main__":
-        
+
+    optparser = argparse.ArgumentParser("Binary repository")
+    optparser.add_argument("-i", "--checkinfo", help="Check if all binaries in the binaries folder are known in the database, without starting the server", action="store_true")
+    optparser.add_argument("-b", "--checkbin", help="Check if binaries known to the database still exist in the binaries folder, without starting the server", action="store_true")
+    optparser.add_argument("-f", "--fix", help="Fix any errors found the by using the -i or -b option or when starting the server", action="store_true")
+    args = optparser.parse_args()
+
+    run        = True
     repository = BuildRepository()
-    repository.add_all_samples()
-    repository.check_db_missing_info(fix=False)
-    repository.check_missing_binaries(fix=False)
-    server.run()
+
+    if args.checkinfo:
+        run = False
+        repository.check_db_missing_info(args.fix)
+
+    if args.checkbin:
+        run = False
+        repository.check_missing_binaries(args.fix)
+
+    if run:
+        repository.add_all_samples()
+        repository.check_db_missing_info(args.fix)
+        repository.check_missing_binaries(args.fix)
+
+        Config.binaries_full_dir = str(os.getcwd()) + "//" + Config.binaries_dir
+
+        api.ApiServer.start_server()
