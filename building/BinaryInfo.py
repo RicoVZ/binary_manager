@@ -1,5 +1,6 @@
 import hashlib
 import os.path
+import logging
 
 class BinaryInfo:
     def __init__(self, file_path=None, fp=None, close_fp=True):
@@ -23,7 +24,7 @@ class BinaryInfo:
             if os.path.isfile(self.file_path):
                 fp = open(self.file_path, "rb")
             else:
-                print("File: " + self.file_path + " does not exist")
+                logging.error("File: " + self.file_path + " does not exist")
                 return
         while True:
             chunk = fp.read(4096)

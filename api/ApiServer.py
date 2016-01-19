@@ -1,5 +1,6 @@
 import json
 import os.path
+import logging
 
 from flask import Flask
 from flask import request
@@ -11,7 +12,7 @@ from building.BuildRepository import BuildRepository
 from config.Config import Config
 from data.DbManager import DbManager
 
-server                              = Flask(__name__)
+server = Flask(__name__)
 
 @server.route("/download/binary/<hash>")
 def download_sample(hash):
@@ -31,7 +32,7 @@ def download_sample(hash):
             return "", 404
             
         if not BinaryInfo.is_hexdigest(name[0]):
-            print("Error! File name is not hash. Filename: " + str(name[0]))
+            logging.warn("Error! File name is not hash. Filename: " + str(name[0]))
             return "", 404
 
         binary = Config.binaries_full_dir + "//" + name[0]
@@ -39,7 +40,7 @@ def download_sample(hash):
         if os.path.exists(binary):
             return send_file(binary)
         else:
-            return "Binary missing ", 404
+            return "{'message':'binary missing'}", 404
 
     else:
         return "",404
@@ -57,14 +58,18 @@ def upload_sample():
                     
                     if BuildRepository().add_single_binary(b_info):
                         file.save(os.path.join(server.config["UPLOAD_FOLDER"], b_info.get_sha256()))
-                        print(request.remote_addr + " uploaded binary " + b_info.get_sha256() + " using API key " + api_key)
+                        logging.info(request.remote_addr + " uploaded binary " + b_info.get_sha256() + " using API key " + api_key)
                         
                         return "{'message':'success'}", 200
                         
                     else:
+                        logging.info(request.remote_addr + " tried uploading already existing binary " + b_info.get_sha256() + " using API key " + api_key)
+                        
                         return "{'message':'already exists'}", 409
 
             else:
+                logging.warn(request.remote_addr + " tried to use incorrect API key: " + api_key)
+                
                 return "", 403
 
     return "", 404
@@ -89,6 +94,6 @@ def start_server():
     server.config["MAX_CONTENT_LENGTH"] = Config.max_upload_size
     server.config["UPLOAD_FOLDER"]      = Config.binaries_full_dir
     
-    print("Starting server on: " + Config.listen_ip + ":" + str(Config.listen_port))
+    logging.info("Starting server on: " + Config.listen_ip + ":" + str(Config.listen_port))
     
     server.run(Config.listen_ip, Config.listen_port)

@@ -1,5 +1,6 @@
 import os.path
 import shutil
+import logging
 
 from building.BinaryInfo import BinaryInfo
 from config.Config import Config
@@ -26,7 +27,7 @@ class BuildRepository:
                 b_info = BinaryInfo(Config.samples_dir + "//" + file)
                 
                 if not dbm.binary_info_exists(b_info):
-                    print("Inserting " + b_info.get_sha256())
+                    logging.info("Inserting " + b_info.get_sha256())
                     if dbm.save_binary_info(b_info):
                         shutil.copy(Config.samples_dir + "//" + file, Config.binaries_dir + "//" + b_info.get_sha256())
 
@@ -58,17 +59,17 @@ class BuildRepository:
         for file in files:
             b_info = BinaryInfo(Config.binaries_dir + "//" + file)
             if not dbm.binary_info_exists(b_info):
-                print("No info found on " + b_info.get_sha256())
+                logging.warn("No info found on " + b_info.get_sha256())
                 errors += 1
 
                 if fix:
                     dbm.save_binary_info(b_info)
                     if not os.path.isfile(Config.binaries_dir + "//" + b_info.get_sha256()):
                         shutil.copy(Config.binaries_dir + "//" + file, Config.binaries_dir + "//" + b_info.get_sha256())
-                    print("Added info to database")
+                    logging.info("Added info to database")
 
         if errors < 1:
-            print("No missing binary info in database")
+            logging.info("No missing binary info in database")
 
         dbm.close_connection()
 
@@ -85,14 +86,14 @@ class BuildRepository:
         for name in all_names:
             
             if not name[0] in files:
-                print("Missing binary: " + name[0])
+                logging.warn("Missing binary: " + name[0])
                 errors += 1
                 
                 if fix:
                     dbm.remove_file_info(name[0])
-                    print("Remove file info from database")
+                    logging.info("Remove file info from database")
 
         if errors < 1:
-            print("No missing binaries")
+            logging.info("No missing binaries")
 
         dbm.close_connection()

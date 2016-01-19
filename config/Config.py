@@ -1,5 +1,6 @@
 import ConfigParser
 import os.path
+import logging
 
 class Config:
     binaries_full_dir = ""
@@ -30,7 +31,7 @@ class Config:
         self.config.set("server", "listen_port", "42424")
         self.config.set("server", "max_upload_size_mb", "16")
         
-        print("Creating default config")
+        logging.info("Creating default config")
         with open(self.config_file, "wb") as fp:
             self.config.write(fp)
 

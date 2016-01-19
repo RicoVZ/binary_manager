@@ -1,4 +1,5 @@
 import sqlite3
+import logging
 
 class DbManager:
     def __init__(self):
@@ -40,7 +41,7 @@ class DbManager:
             self.conn.commit()
             success = True
         except sqlite3.Error as e:
-            print("Failed to insert binary_info: " + e.message)
+            logging.error("Failed to insert binary_info: " + e.message)
         
         return success
     
@@ -57,7 +58,7 @@ class DbManager:
             self.conn.commit()
             success = True
         except sqlite3.Error as e:
-            print("Failed to store api key " + e.message)
+            logging.error("Failed to store api key " + e.message)
             
         return success
     
@@ -70,7 +71,7 @@ class DbManager:
             self.cursor.execute(query)
             keys = self.cursor.fetchall()
         except sqlite3.Error as e:
-            print("Failed to get all api keys " + e.message)
+            logging.error("Failed to get all api keys " + e.message)
         
         return keys
     
@@ -84,7 +85,7 @@ class DbManager:
             self.conn.commit()
             success = True
         except sqlite3.Error as e:
-            print("Failed to delete api key: " + e.message)
+            logging.error("Failed to delete api key: " + e.message)
         
         return success
     
@@ -98,7 +99,7 @@ class DbManager:
             self.conn.commit()
             success = True
         except sqlite3.Error as e:
-            print("Failed to delete api key: " + e.message)
+            logging.error("Failed to delete api key: " + e.message)
             
         return success
     
@@ -112,7 +113,7 @@ class DbManager:
             self.conn.commit()
             success = True
         except sqlite3.Error as e:
-            print("Failed to delete all api keys: " + e.message)
+            logging.error("Failed to delete all api keys: " + e.message)
         
         return success
     
@@ -128,7 +129,7 @@ class DbManager:
                 found = True
         
         except sqlite3.Error as e:
-            print("Failed to select on api key " + e.message)
+            logging.error("Failed to select on api key " + e.message)
         
         return found
     
@@ -144,7 +145,7 @@ class DbManager:
                 found = True
         
         except sqlite3.Error as e:
-            print("Failed to select on binary name " + e.message)
+            logging.error("Failed to select on binary name " + e.message)
         
         return found
     
@@ -158,7 +159,7 @@ class DbManager:
             results = self.cursor.fetchall()
 
         except sqlite3.Error as e:
-            print("Failed to select all name: " + e.message)
+            logging.error("Failed to select all name: " + e.message)
         
         return results
     
@@ -171,7 +172,7 @@ class DbManager:
             self.conn.commit()
             
         except sqlite3.Error as e:
-            print("Failed to delete binary info: " + e.message)
+            logging.error("Failed to delete binary info: " + e.message)
     
     def search_file_name_for(self, hashtype, hash):
         
@@ -184,7 +185,7 @@ class DbManager:
                 self.cursor.execute(query, (str(hash),))
                 name = self.cursor.fetchone()
             except sqlite3.Error as e:
-                print("Failed to search binary info for: "  +str(hash) + " " + e.message)
+                logging.error("Failed to search binary info for: "  +str(hash) + " " + e.message)
                 
         return name
     
@@ -197,7 +198,7 @@ class DbManager:
             self.cursor.execute(query)
             total = self.cursor.fetchone()
         except sqlite3.Error as e:
-            print("Failed to get total binaries")
+            logging.error("Failed to get total binaries")
 
         return total
             
