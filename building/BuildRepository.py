@@ -2,8 +2,8 @@ import os.path
 import shutil
 
 from building.BinaryInfo import BinaryInfo
-from data.DbManager import DbManager
 from config.Config import Config
+from data.DbManager import DbManager
 
 class BuildRepository:
     
@@ -31,6 +31,21 @@ class BuildRepository:
                         shutil.copy(Config.samples_dir + "//" + file, Config.binaries_dir + "//" + b_info.get_sha256())
 
         dbm.close_connection()
+    
+    def add_single_binary(self, b_info):
+        
+        success = False
+        
+        dbm = DbManager()
+        dbm.open_connection()
+        
+        if not dbm.binary_info_exists(b_info):
+            if dbm.save_binary_info(b_info):
+                success = True
+                
+        dbm.close_connection()
+        
+        return success
 
     def check_db_missing_info(self, fix=False):
 

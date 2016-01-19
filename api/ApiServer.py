@@ -1,14 +1,17 @@
-import os.path
 import json
+import os.path
 
 from flask import Flask
+from flask import request
 from flask.helpers import send_file
 
+from api.ApiKey import ApiKey
 from building.BinaryInfo import BinaryInfo
-from data.DbManager import DbManager
+from building.BuildRepository import BuildRepository
 from config.Config import Config
+from data.DbManager import DbManager
 
-server    = Flask(__name__)
+server                              = Flask(__name__)
 
 @server.route("/download/binary/<hash>")
 def download_sample(hash):
@@ -41,6 +44,31 @@ def download_sample(hash):
     else:
         return "",404
 
+@server.route("/upload/binary", methods = ["POST"])
+def upload_sample():
+    if request.method == 'POST':
+        if "api_key" in request.form.keys():
+            api_key = request.form.get("api_key")
+            
+            if ApiKey.is_api_key_valid(api_key):
+                if "file" in request.files.keys():
+                    file = request.files["file"]
+                    b_info = BinaryInfo(fp=file,close_fp=False)
+                    
+                    if BuildRepository().add_single_binary(b_info):
+                        file.save(os.path.join(server.config["UPLOAD_FOLDER"], b_info.get_sha256()))
+                        print(request.remote_addr + " uploaded binary " + b_info.get_sha256() + " using API key " + api_key)
+                        
+                        return "{'message':'success'}", 200
+                        
+                    else:
+                        return "{'message':'already exists'}", 409
+
+            else:
+                return "", 403
+
+    return "", 404
+
 @server.route("/management/stats")
 def get_total():
     
@@ -57,5 +85,10 @@ def get_total():
     
 
 def start_server():
-
-    server.run(Config.listen_ip, Config.listen_port, debug=True)
+    
+    server.config["MAX_CONTENT_LENGTH"] = Config.max_upload_size
+    server.config["UPLOAD_FOLDER"]      = Config.binaries_full_dir
+    
+    print("Starting server on: " + Config.listen_ip + ":" + str(Config.listen_port))
+    
+    server.run(Config.listen_ip, Config.listen_port)

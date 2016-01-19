@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
-import os
 import argparse
+import os
+import sys
 
-import api.ApiServer
-from building.BinaryInfo import BinaryInfo
 from building.BuildRepository import BuildRepository
-from data.DbManager import DbManager
 from config.Config import Config
-from api.ApiKey import ApiKey
-
+import api.ApiServer
 
 if __name__ == "__main__":
 
@@ -31,10 +28,19 @@ if __name__ == "__main__":
         repository.check_missing_binaries(args.fix)
 
     if run:
+        
+        repository.check_db_missing_info(True)
+        repository.check_missing_binaries(True)
         repository.add_all_samples()
-        repository.check_db_missing_info(args.fix)
-        repository.check_missing_binaries(args.fix)
-
-        Config.binaries_full_dir = str(os.getcwd()) + "//" + Config.binaries_dir
-
-        api.ApiServer.start_server()
+        
+        try:
+            Config()
+        except Exception as e:
+            print("Error reading config file: " + str(e))
+            sys.exit(1)
+        
+        try:
+            api.ApiServer.start_server()
+        except Exception as e:
+            print("Error in server: " + str(e))
+            sys.exit(1)

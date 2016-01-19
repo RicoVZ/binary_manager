@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys
 import argparse
+import sys
 
 from api.ApiKey import ApiKey
 from data.DbManager import DbManager
@@ -71,6 +71,9 @@ if __name__ == "__main__":
     optparser.add_argument("-do", "--delowner", help= "Delete all keys for specified owner")
     optparser.add_argument("-DA", "--delall", help= "Delete ALL api keys", action="store_true")
     args = optparser.parse_args()
+    
+    if len(sys.argv) < 2:
+        optparser.print_help()
     
     if args.delkey:
         ApiKeyManager().del_key(args.delkey)
